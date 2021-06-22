@@ -16,6 +16,7 @@ class User:
         self.password = data['password']
         self.created_at = data['created_at']
         self.updated_at = data['updated_at']
+        self.recipes = []
     
     @classmethod
     def get_all(cls):
@@ -23,18 +24,32 @@ class User:
 
     @classmethod
     def create(cls, data):
-        query = 'INSERT INTO users (first_name, last_name, email, password, created_at, updated_at) VALUES (%(first_name)s, %(last_name)s, %(email)s, %(password)s, NOW(), NOW());'
+        query = "INSERT INTO users (first_name, last_name, email, password, created_at, updated_at) VALUES (%(first_name)s, %(last_name)s, %(email)s, %(password)s, NOW(), NOW());"
         
         results = connectToMySQL('recipes_schema').query_db(query, data)
         return results
     
     @classmethod
     def get_one(cls, data):
-        pass
+        query = 'SELECT FROM users LEFT JOIN recipes ON users.id = recipes.user_id WHERE users_id = %(id)s'
+        
+        results = connectToMySQL('recipes_schema').query_db(query, data)
+        
+    @classmethod
+    def get_by_email(cls,data):
+        query = 'SELECT * FROM users WHERE email = %(email)s;'
+
+        results = connectToMySQL('recipes_schema').query_db(query, data)
+        if len(results) < 1:
+            return False
+        return User(results[0])
 
     @classmethod
     def update(cls, data):
-        pass
+        query = 'UPDATE recipes SET LEFT JOIN recipes ON users.id = recipes.user_id WHERE user_id = %(id)s;'
+        
+        results = connectToMySQL('recipes_schema').query_db(query, data)
+        return results
     
     @classmethod
     def delete(cls, data):
@@ -52,7 +67,9 @@ class User:
         if not EMAIL_REGEX.match(post_data['email']):
             flash('Email Address is not valid')
             is_valid = False
-        if len(post_data['password']) < 8
+        elif User.email_exists({'email': post_data['email']}):
+            flash('Account already exists')
+        if len(post_data['password']) < 8:
             flash('Password must be at least 8 characters')
         if not PASSWORD_REGEX.match(post_data['password']):
             flash('Password must contain ONE capital letter and ONE number.')
@@ -64,13 +81,24 @@ class User:
     
     @staticmethod 
     def validate_login(post_data):
-        db_user = User.get_by_email({'email: post_data['email']})
-        if not db_user;
+        db_user = User.get_by_email({'email': post_data['email']})
+        if not db_user:
             flash('Invalid credentials.')
             return False
         if not bcrypt.check_password_hash(db_user.password.post_data['password']):
             flash('Invalid credentials')
-                return False
+            return False
                 
         return True
+        
+    @staticmethod
+    def email_exists(data):
+        email_exists = False
+        query = "SELECT email FROM user WHERE email = %(email)s;"
+        results = connectToMySQL('recipes_schema').query_db(query, data)
+        
+        if results:
+            email_exists = True
+        return email_exists
+        
         

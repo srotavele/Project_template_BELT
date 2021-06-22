@@ -12,4 +12,22 @@ def index():
 
 @app.route('/sign_up', methods = ['POST'])
 def sign_up():
+    if not User.validate_signup(request.form):
+        return redirect('/')
     
+    hash_me = bcrypt.generate_password_hash(request.form['password'])
+    
+    data ={
+        'first_name': request.form['first_name'],
+        'last_name': request.form['last_name'],
+        'email': request.form['email'],
+        'password': hash_me
+        }
+    user_id = User.create(data)
+    session['client'] = user_id
+    
+    return redirect('/dashboard')
+
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
