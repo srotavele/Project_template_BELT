@@ -54,4 +54,23 @@ class User:
             is_valid = False
         if len(post_data['password']) < 8
             flash('Password must be at least 8 characters')
-            
+        if not PASSWORD_REGEX.match(post_data['password']):
+            flash('Password must contain ONE capital letter and ONE number.')
+        else:
+            if post_data['password'] != post_data['confirm_password']:
+                flash('Passwords do not match.')
+                is_valid = False
+        return 
+    
+    @staticmethod 
+    def validate_login(post_data):
+        db_user = User.get_by_email({'email: post_data['email']})
+        if not db_user;
+            flash('Invalid credentials.')
+            return False
+        if not bcrypt.check_password_hash(db_user.password.post_data['password']):
+            flash('Invalid credentials')
+                return False
+                
+        return True
+        
